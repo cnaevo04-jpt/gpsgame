@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>国道冒険記 - マップ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f7;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        let currentLocation = null;
+        .map-container {
+            flex-grow: 1;
+            position: relative;
+            background-color: #a3c4f3;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            font-size: 0.85em;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .user-info .points, .user-info .progress {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+        }
+        .user-info .icon {
+            width: 18px;
+            height: 18px;
+            margin-right: 6px;
+        }
+        
+        .road-info {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            background: rgba(76, 175, 80, 0.95);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            font-size: 0.85em;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            animation: slideInLeft 0.3s ease;
+        }
+        
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .gps-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .gps-status.success { color: #28a745; background: rgba(212, 237, 218, 0.95); }
+        .gps-status.loading { color: #ffc107; background: rgba(255, 243, 205, 0.95); }
+        .gps-status.error { color: #dc3545; background: rgba(248, 215, 218, 0.95); }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-around;
+            background-color: #fff;
+            padding: 10px 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .nav-item {
+            text-align: center;
+            flex: 1;
+            text-decoration: none;
+            color: #888;
+            transition: color 0.2s;
+            padding: 5px;
+        }
+        .nav-item.active { color: #4a90e2; }
+        .nav-item:hover { color: #4a90e2; }
+        .nav-item .nav-icon {
+            height: 24px;
+            width: 24px;
+            display: block;
+            margin: 0 auto 5px;
+        }
+        .nav-item span { font-size: 0.8em; }
+        
+        .map-controls {
+            position: absolute;
+            bottom: 100px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        
+        .control-button {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+        
+        .control-button:hover { transform: scale(1.05); }
+        
+        .debug-panel {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 250px;
+            max-height: 120px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="map-container">
+        <div id="map"></div>
+        
+        <div class="user-info">
+            <div class="points">
+                <span class="icon">💎</span>
+                <span id="pointsDisplay">12500</span>
+            </div>
+            <div class="progress">
+                <span class="icon">📏</span>
+                <span id="distanceDisplay">0km</span>
+            </div>
+        </div>
+        
+        <div class="road-info" id="roadInfo" style="display: none;">
+            <div id="roadName">国道を検索中...</div>
+            <div id="roadDistance">走行距離: 0m</div>
+        </div>
+        
+        <div class="gps-status loading" id="gpsStatus">📡 GPS取得中...</div>
+        
+        <div class="map-controls">
+            <button class="control-button" onclick="getCurrentLocation()" title="現在地取得">📍</button>
+            <button class="control-button" onclick="toggleLocationWatch()" id="watchButton" title="位置監視">👁️</button>
+            <button class="control-button" onclick="startSimulation()" id="simulateButton" title="移動シミュレーション">🚗</button>
+            <button class="control-button" onclick="toggleDebug()" title="デバッグ">🔧</button>
+        </div>
+        
+        <div class="debug-panel" id="debugPanel">
+            <div id="debugLog">GPS情報読み込み中...</div>
+        </div>
+    </div>
+    
+    <nav class="navbar">
+        <a href="#" class="nav-item active">
+            <span class="nav-icon">🗺️</span>
+            <span>マップ</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">👥</span>
+            <span>キャラ図鑑</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">❤️</span>
+            <span>プロフィール</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">⚙️</span>
+            <span>設定</span>
+        </a>
+    </nav>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        let map = null;
+        let currentMarker = null;
+        let watchId = null;
+        let isWatching = false;
+        let debugMode = false;
+        let debugLog = [];
+        // シミュレーション機能
+        function startSimulation() {
+            const button = document.getElementById('simulateButton');
+            
+            if (simulationActive) {
+                // シミュレーション停止
+                clearInterval(simulationInterval);
+                simulationActive = false;
+                button.textContent = '🚗';
+                button.title = '移動シミュレーション';
+                updateGpsStatus('success', '⏹️ シミュレーション停止');
+                addDebugLog('移動シミュレーション停止');
+            } else {
+                // シミュレーション開始
+                simulationActive = true;
+                button.textContent = '⏹️';
+                button.title = 'シミュレーション停止';
+                updateGpsStatus('loading', '🚗 移動シミュレーション中...');
+                addDebugLog('移動シミュレーション開始');
+                
+                // 3秒間隔で各テストポイントを巡回
+                simulationInterval = setInterval(simulateMovement, 3000);
+                
+                // 最初のポイントをすぐに実行
+                simulateMovement();
+            }
+        }
+        
+        function simulateMovement() {
+            if (!simulationActive) return;
+            
+            const point = testPoints[currentTestIndex];
+            
+            // 疑似GPS座標を生成（少しランダムに変動させる）
+            const lat = point.lat + (Math.random() - 0.5) * 0.0001; // ±5m程度の誤差
+            const lng = point.lng + (Math.random() - 0.5) * 0.0001;
+            const accuracy = 10 + Math.random() * 20; // 10-30mの精度
+            
+            // 疑似位置情報オブジェクトを作成
+            const simulatedPosition = {
+                coords: {
+                    latitude: lat,
+                    longitude: lng,
+                    accuracy: accuracy,
+                    speed: 5 // 歩行速度 (m/s)
+                },
+                timestamp: Date.now()
+            };
+            
+            // 位置情報成功時の処理を実行
+            onLocationSuccess(simulatedPosition);
+            
+            addDebugLog(`シミュレーション: ${point.name} (${lat.toFixed(6)}, ${lng.toFixed(6)})`);
+            
+            // 次のポイントに移動
+            currentTestIndex = (currentTestIndex + 1) % testPoints.length;
+            
+            // 1周したら少し待機
+            if (currentTestIndex === 0) {
+                addDebugLog('シミュレーション1周完了、継続中...');
+            }
+        }
+        
+        // 特定の国道エリアに直接ジャンプする機能
+        function jumpToRoad(roadNumber) {
+            let targetPoint;
+            
+            switch(roadNumber) {
+                case 1:
+                    targetPoint = { lat: 34.7035, lng: 135.4975, name: "国道1号テスト地点" };
+                    break;
+                case 2:
+                    targetPoint = { lat: 34.6915, lng: 135.4965, name: "国道2号テスト地点" };
+                    break;
+                case 25:
+                    targetPoint = { lat: 34.6515, lng: 135.5165, name: "国道25号テスト地点" };
+                    break;
+                case 176:
+                    targetPoint = { lat: 34.7265, lng: 135.4915, name: "国道176号テスト地点" };
+                    break;
+                default:
+                    return;
+            }
+            
+            const simulatedPosition = {
+                coords: {
+                    latitude: targetPoint.lat,
+                    longitude: targetPoint.lng,
+                    accuracy: 15,
+                    speed: 0
+                },
+                timestamp: Date.now()
+            };
+            
+            onLocationSuccess(simulatedPosition);
+            addDebugLog(`国道${roadNumber}号エリアにジャンプ: ${targetPoint.name}`);
+        }
+        
+        // ゲームデータ
+        let gameData = {
+            points: 12500,
+            totalDistance: 0,
+            lastPosition: null,
+            currentRoad: null,
+            roadDistance: 0  // 現在の国道での走行距離
+        };
+        
+        // シミュレーション用変数
+        let simulationActive = false;
+        let simulationInterval = null;
+        
+        // 大阪の国道テストポイント
+        const testPoints = [
+            // 国道1号エリア（大阪駅周辺）
+            { lat: 34.7024, lng: 135.4959, name: "大阪駅" },
+            { lat: 34.7030, lng: 135.4970, name: "国道1号 Point1" },
+            { lat: 34.7040, lng: 135.4980, name: "国道1号 Point2" },
+            
+            // 国道2号エリア（中之島周辺）
+            { lat: 34.6900, lng: 135.4950, name: "中之島公園" },
+            { lat: 34.6910, lng: 135.4960, name: "国道2号 Point1" },
+            { lat: 34.6920, lng: 135.4970, name: "国道2号 Point2" },
+            
+            // 国道25号エリア（天王寺周辺）
+            { lat: 34.6500, lng: 135.5150, name: "天王寺駅" },
+            { lat: 34.6510, lng: 135.5160, name: "国道25号 Point1" },
+            { lat: 34.6520, lng: 135.5170, name: "国道25号 Point2" },
+            
+            // 国道176号エリア（新大阪周辺）
+            { lat: 34.7250, lng: 135.4900, name: "新大阪駅" },
+            { lat: 34.7260, lng: 135.4910, name: "国道176号 Point1" },
+            { lat: 34.7270, lng: 135.4920, name: "国道176号 Point2" }
+        ];
+        
+        let currentTestIndex = 0;
+        
+        // デバッグログ
+        function addDebugLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            if (debugLog.length > 15) debugLog.shift();
+            console.log(`[GPS-GAME] ${message}`);
+            updateDebugDisplay();
+        }
+        
+        function updateDebugDisplay() {
+            if (debugMode) {
+                const debugElement = document.getElementById('debugLog');
+                debugElement.innerHTML = `
+                    ${debugLog.join('<br>')}
+                    <br><br><strong>🎮 テスト機能:</strong><br>
+                    <button onclick="jumpToRoad(1)" style="margin:2px;padding:4px;font-size:10px;">国道1号</button>
+                    <button onclick="jumpToRoad(2)" style="margin:2px;padding:4px;font-size:10px;">国道2号</button><br>
+                    <button onclick="jumpToRoad(25)" style="margin:2px;padding:4px;font-size:10px;">国道25号</button>
+                    <button onclick="jumpToRoad(176)" style="margin:2px;padding:4px;font-size:10px;">国道176号</button>
+                `;
+            }
+        }
+        
+        function toggleDebug() {
+            debugMode = !debugMode;
+            document.getElementById('debugPanel').style.display = debugMode ? 'block' : 'none';
+            if (debugMode) updateDebugDisplay();
+        }
+        
+        // GPS状態更新
+        function updateGpsStatus(status, message) {
+            const statusElement = document.getElementById('gpsStatus');
+            statusElement.className = `gps-status ${status}`;
+            statusElement.textContent = message;
+        }
+        
+        // 地図初期化（シンプル版）
+        function initMap(lat = 34.7024, lng = 135.4959) {
+            addDebugLog('地図初期化開始');
+            
+            try {
+                if (map) map.remove();
+                
+                map = L.map('map').setView([lat, lng], 15);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                
+                addDebugLog('地図初期化完了');
+                
+            } catch (error) {
+                addDebugLog('地図エラー: ' + error.message);
+                updateGpsStatus('error', '❌ 地図エラー');
+            }
+        }
+        
+        // 現在地マーカー更新
+        function updateCurrentLocationMarker(lat, lng, accuracy) {
+            if (!map) return;
+            
+            if (currentMarker) map.removeLayer(currentMarker);
+            
+            currentMarker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    className: 'current-location-marker',
+                    html: '📍',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                })
+            }).addTo(map);
+            
+            L.circle([lat, lng], {
+                color: '#4a90e2',
+                fillColor: '#4a90e2',
+                fillOpacity: 0.1,
+                radius: accuracy
+            }).addTo(map);
+            
+            currentMarker.bindPopup(`現在地<br>精度: ${accuracy.toFixed(1)}m`);
+        }
+        
+        // 距離計算
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+        
+        // 国道判定（大阪版・シンプル）
+        function checkNationalRoad(lat, lng) {
+            const roads = [
+                { id: 1, name: "国道1号", minLat: 34.700, maxLat: 34.710, minLng: 135.495, maxLng: 135.505 },
+                { id: 2, name: "国道2号", minLat: 34.685, maxLat: 34.695, minLng: 135.490, maxLng: 135.500 },
+                { id: 25, name: "国道25号", minLat: 34.645, maxLat: 34.655, minLng: 135.510, maxLng: 135.520 },
+                { id: 176, name: "国道176号", minLat: 34.720, maxLat: 34.730, minLng: 135.485, maxLng: 135.495 }
+            ];
+            
+            for (let road of roads) {
+                if (lat >= road.minLat && lat <= road.maxLat && lng >= road.minLng && lng <= road.maxLng) {
+                    return road;
+                }
+            }
+            return null;
+        }
+        
+        // ゲーム進行処理
+        function processGameData(lat, lng) {
+            // 距離計算
+            if (gameData.lastPosition) {
+                const distance = calculateDistance(gameData.lastPosition.lat, gameData.lastPosition.lng, lat, lng);
+                if (distance > 1 && distance < 200) { // 1m以上で計算（シミュレーション対応）
+                    gameData.totalDistance += distance;
+                    gameData.points += Math.floor(distance / 10);
+                    
+                    // 国道内での距離も加算
+                    if (gameData.currentRoad) {
+                        gameData.roadDistance += distance;
+                    }
+                    
+                    // UI更新
+                    document.getElementById('distanceDisplay').textContent = `${(gameData.totalDistance/1000).toFixed(1)}km`;
+                    document.getElementById('pointsDisplay').textContent = gameData.points.toLocaleString();
+                    
+                    // 国道内距離も更新
+                    if (gameData.currentRoad) {
+                        document.getElementById('roadDistance').textContent = `走行距離: ${gameData.roadDistance.toFixed(0)}m`;
+                    }
+                    
+                    addDebugLog(`移動距離: ${distance.toFixed(1)}m (総計: ${(gameData.totalDistance/1000).toFixed(2)}km)`);
+                }
+            }
+            
+            // 国道判定
+            const road = checkNationalRoad(lat, lng);
+            if (road) {
+                if (!gameData.currentRoad || gameData.currentRoad.id !== road.id) {
+                    // 新しい国道に入った
+                    gameData.currentRoad = road;
+                    gameData.roadDistance = 0; // 国道内距離をリセット
+                    document.getElementById('roadName').textContent = `🛣️ ${road.name}`;
+                    document.getElementById('roadDistance').textContent = `走行距離: 0m`;
+                    document.getElementById('roadInfo').style.display = 'block';
+                    addDebugLog(`国道発見: ${road.name}`);
+                } else {
+                    // 同じ国道内で移動中
+                    document.getElementById('roadDistance').textContent = `走行距離: ${gameData.roadDistance.toFixed(0)}m`;
+                }
+            } else {
+                if (gameData.currentRoad) {
+                    // 国道から離れた
+                    addDebugLog(`${gameData.currentRoad.name}を離脱 (走行距離: ${gameData.roadDistance.toFixed(0)}m)`);
+                    gameData.currentRoad = null;
+                    gameData.roadDistance = 0;
+                    document.getElementById('roadInfo').style.display = 'none';
+                    addDebugLog('国道から離れました');
+                }
+            }
+            
+            gameData.lastPosition = { lat, lng };
+        }
+        
+        // 位置情報取得成功
+        function onLocationSuccess(position) {
+            const { latitude, longitude, accuracy } = position.coords;
+            
+            currentLocation = { latitude, longitude, accuracy };
+            updateGpsStatus('success', `📍 GPS精度: ${accuracy.toFixed(0)}m`);
+            updateCurrentLocationMarker(latitude, longitude, accuracy);
+            
+            // ゲーム処理
+            processGameData(latitude, longitude);
+            
+            if (!isWatching) {
+                map.setView([latitude, longitude], 16);
+            }
+            
+            addDebugLog(`位置取得: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+        }
+        
+        // 位置情報取得エラー
+        function onLocationError(error) {
+            let message = '';
+            switch(error.code) {
+                case error.PERMISSION_DENIED: message = '❌ 位置情報が拒否されました'; break;
+                case error.POSITION_UNAVAILABLE: message = '❌ 位置情報を取得できません'; break;
+                case error.TIMEOUT: message = '⏰ 位置情報取得タイムアウト'; break;
+                default: message = '❌ 位置情報エラー';
+            }
+            updateGpsStatus('error', message);
+            addDebugLog('GPS エラー: ' + error.message);
+        }
+        
+        // 現在地取得
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                updateGpsStatus('error', '❌ GPS非対応');
+                return;
+            }
+            
+            updateGpsStatus('loading', '📡 位置取得中...');
+            
+            navigator.geolocation.getCurrentPosition(
+                onLocationSuccess,
+                onLocationError,
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+            );
+        }
+        
+        // 位置監視切り替え
+        function toggleLocationWatch() {
+            const button = document.getElementById('watchButton');
+            
+            if (isWatching) {
+                if (watchId) navigator.geolocation.clearWatch(watchId);
+                isWatching = false;
+                button.textContent = '👁️';
+                updateGpsStatus('success', '⏹️ 監視停止');
+                addDebugLog('位置監視停止');
+            } else {
+                watchId = navigator.geolocation.watchPosition(
+                    onLocationSuccess,
+                    onLocationError,
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 3000 }
+                );
+                isWatching = true;
+                button.textContent = '⏹️';
+                updateGpsStatus('loading', '👁️ 位置監視中...');
+                addDebugLog('位置監視開始');
+            }
+        }
+        
+        // 初期化
+        window.addEventListener('load', function() {
+            addDebugLog('アプリ開始（大阪版）');
+            initMap();
+            setTimeout(getCurrentLocation, 1000);
+        });
+    </script>
+</body>
+</html>
