@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>国道冒険記 - プロフィール設定</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .profile-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            color: #333;
+            animation: slideInUp 0.8s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .form-group:nth-child(1) { animation-delay: 0.2s; }
+        .form-group:nth-child(2) { animation-delay: 0.3s; }
+        .form-group:nth-child(3) { animation-delay: 0.4s; }
+        .form-group:nth-child(4) { animation-delay: 0.5s; }
+        .form-group:nth-child(5) { animation-delay: 0.6s; }
+        .form-group:nth-child(6) { animation-delay: 0.7s; }
+        .form-group:nth-child(7) { animation-delay: 0.8s; }
+        .form-group:nth-child(8) { animation-delay: 0.9s; }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .required {
+            color: #e74c3c;
+            font-size: 0.9em;
+        }
+        
+        .optional {
+            color: #95a5a6;
+            font-size: 0.8em;
+            font-weight: 400;
+        }
+        
+        input[type="text"], 
+        input[type="email"], 
+        select, 
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1em;
+            font-family: 'Roboto', sans-serif;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        input[type="text"]:focus, 
+        input[type="email"]:focus, 
+        select:focus, 
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: rgba(255, 255, 255, 1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            max-height: 120px;
+        }
+        
+        .char-counter {
+            text-align: right;
+            font-size: 0.8em;
+            color: #95a5a6;
+            margin-top: 5px;
+        }
+        
+        .age-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        
+        .age-option {
+            position: relative;
+        }
+        
+        .age-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+        
+        .age-option label {
+            display: block;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 400;
+            background: rgba(255, 255, 255, 0.7);
+        }
+        
+        .age-option input[type="radio"]:checked + label {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .hobby-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .hobby-tag {
+            position: relative;
+        }
+        
+        .hobby-tag input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+        }
+        
+        .hobby-tag label {
+            display: block;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid #e1e8ed;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            font-weight: 400;
+        }
+        
+        .hobby-tag input[type="checkbox"]:checked + label {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .submit-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 500;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            animation: none;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e1e8ed;
+            border-radius: 2px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .skip-section {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e8ed;
+        }
+        
+        .skip-btn {
+            background: transparent;
+            border: 1px solid #bdc3c7;
+            color: #7f8c8d;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .skip-btn:hover {
+            border-color: #95a5a6;
+            color: #95a5a6;
+        }
+        
+        @media (max-width: 600px) {
+            .profile-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .age-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .validation-message {
+            color: #e74c3c;
+            font-size: 0.8em;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="header">
+            <h1>🚗 冒険者登録</h1>
+            <p>あなたの情報を教えてください<br>素晴らしい国道の旅が待っています！</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <form id="profileForm">
+            <div class="form-group">
+                <label>
+                    📱 ユーザーID <span class="required">*必須</span>
+                </label>
+                <input type="text" id="userId" name="userId" required maxlength="20" 
+                       placeholder="例: roadmaster2024">
+                <div class="validation-message" id="userIdError">ユーザーIDは3文字以上20文字以内で入力してください</div>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    👤 ニックネーム <span class="required">*必須</span>
+                </label>
+                <input type="text" id="nickname" name="nickname" required maxlength="15" 
+                       placeholder="例: 国道マスター">
+                <div class="validation-message" id="nicknameError">ニックネームは必須です</div>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    📧 メールアドレス <span class="optional">(任意)</span>
+                </label>
+                <input type="email" id="email" name="email" 
+                       placeholder="例: road@adventure.com">
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    🚙 愛車メーカー <span class="optional">(任意)</span>
+                </label>
+                <select id="carBrand" name="carBrand">
+                    <option value="">選択してください</option>
+                    <option value="toyota">トヨタ</option>
+                    <option value="honda">ホンダ</option>
+                    <option value="nissan">日産</option>
+                    <option value="mazda">マツダ</option>
+                    <option value="subaru">スバル</option>
+                    <option value="suzuki">スズキ</option>
+                    <option value="daihatsu">ダイハツ</option>
+                    <option value="mitsubishi">三菱</option>
+                    <option value="lexus">レクサス</option>
+                    <option value="infiniti">インフィニティ</option>
+                    <option value="bmw">BMW</option>
+                    <option value="mercedes">メルセデス・ベンツ</option>
+                    <option value="audi">アウディ</option>
+                    <option value="volkswagen">フォルクスワーゲン</option>
+                    <option value="other">その他</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    🛣️ お気に入り国道 <span class="optional">(任意)</span>
+                </label>
+                <input type="text" id="favoriteRoad" name="favoriteRoad" maxlength="10" 
+                       placeholder="例: 国道1号、R246など">
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    🎂 年齢層
+                </label>
+                <div class="age-group">
+                    <div class="age-option">
+                        <input type="radio" id="age1" name="ageGroup" value="10s">
+                        <label for="age1">10代</label>
+                    </div>
+                    <div class="age-option">
+                        <input type="radio" id="age2" name="ageGroup" value="20s">
+                        <label for="age2">20代</label>
+                    </div>
+                    <div class="age-option">
+                        <input type="radio" id="age3" name="ageGroup" value="30s">
+                        <label for="age3">30代</label>
+                    </div>
+                    <div class="age-option">
+                        <input type="radio" id="age4" name="ageGroup" value="40s">
+                        <label for="age4">40代</label>
+                    </div>
+                    <div class="age-option">
+                        <input type="radio" id="age5" name="ageGroup" value="50s">
+                        <label for="age5">50代</label>
+                    </div>
+                    <div class="age-option">
+                        <input type="radio" id="age6" name="ageGroup" value="60s+">
+                        <label for="age6">60代以上</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    🎯 趣味・関心 <span class="optional">(複数選択可)</span>
+                </label>
+                <div class="hobby-tags">
+                    <div class="hobby-tag">
+                        <input type="checkbox" id="driving" name="hobbies" value="driving">
+                        <label for="driving">ドライブ</label>
+                    </div>
+                    <div class="hobby-tag">
+                        <input type="checkbox" id="travel" name="hobbies" value="travel">
+                        <label for="travel">旅行</label>
+                    </div>
+                    <div class="hobby-tag">
+                        <input type="checkbox" id="photography" name="hobbies" value="photography">
+                        <label for="photography">写真</label>
+                    </div>
+                    <div class="hobby-tag">
+                        <input type="checkbox" id="history" name="hobbies" value="history">
+                        <label for="history">歴史</label>
+                    </div>
+                    <div class="hobby-tag">
+                        <input type="checkbox" id="food" name="hobbies" value="food">
+                        <label for="food">グルメ</label>
+                    </div>
+                    <div class="hobby-tag">
+                        <input type="checkbox" id="nature" name="hobbies" value="nature">
+                        <label for="nature">自然</label>
+                    </div>
+                    <div class="hobby-tag">
+                        <input type="checkbox" id="gaming" name="hobbies" value="gaming">
+                        <label for="gaming">ゲーム</label>
+                    </div>
+                    <div class="hobby-tag">
+                        <input type="checkbox" id="collecting" name="hobbies" value="collecting">
+                        <label for="collecting">収集</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    💬 一言メッセージ <span class="optional">(任意)</span>
+                </label>
+                <textarea id="message" name="message" maxlength="100" 
+                          placeholder="国道への想いや意気込みをどうぞ！"></textarea>
+                <div class="char-counter">
+                    <span id="messageCount">0</span>/100文字
+                </div>
+            </div>
+            
+            <div class="submit-section">
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    🚀 冒険を開始する！
+                </button>
+            </div>
+        </form>
+        
+        <div class="skip-section">
+            <button type="button" class="skip-btn" onclick="skipProfile()">
+                後で設定する（スキップ）
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // プログレスバーの更新
+        function updateProgress() {
+            const requiredFields = ['userId', 'nickname'];
+            const allFields = ['userId', 'nickname', 'email', 'carBrand', 'favoriteRoad', 'message'];
+            
+            let filledRequired = 0;
+            let filledTotal = 0;
+            
+            requiredFields.forEach(field => {
+                if (document.getElementById(field).value.trim()) {
+                    filledRequired++;
+                }
+            });
+            
+            allFields.forEach(field => {
+                if (document.getElementById(field).value.trim()) {
+                    filledTotal++;
+                }
+            });
+            
+            // 年齢選択のチェック
+            if (document.querySelector('input[name="ageGroup"]:checked')) {
+                filledTotal++;
+            }
+            
+            // 趣味選択のチェック
+            if (document.querySelectorAll('input[name="hobbies"]:checked').length > 0) {
+                filledTotal++;
+            }
+            
+            const progress = (filledTotal / 8) * 100; // 8項目中
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            // 送信ボタンの状態更新
+            const submitBtn = document.getElementById('submitBtn');
+            if (filledRequired === requiredFields.length) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+        
+        // バリデーション
+        function validateForm() {
+            let isValid = true;
+            
+            const userId = document.getElementById('userId').value.trim();
+            const nickname = document.getElementById('nickname').value.trim();
+            
+            // ユーザーID検証
+            if (userId.length < 3 || userId.length > 20) {
+                document.getElementById('userIdError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('userIdError').style.display = 'none';
+            }
+            
+            // ニックネーム検証
+            if (nickname.length === 0) {
+                document.getElementById('nicknameError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('nicknameError').style.display = 'none';
+            }
+            
+            return isValid;
+        }
+        
+        // 文字数カウンター
+        document.getElementById('message').addEventListener('input', function() {
+            const count = this.value.length;
+            document.getElementById('messageCount').textContent = count;
+            
+            if (count > 100) {
+                this.value = this.value.substring(0, 100);
+                document.getElementById('messageCount').textContent = 100;
+            }
+        });
+        
+        // リアルタイム更新イベント
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('input', updateProgress);
+            element.addEventListener('change', updateProgress);
+        });
+        
+        // フォーム送信
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+            
+            // フォームデータを収集
+            const formData = new FormData(this);
+            const profileData = {};
+            
+            // 基本データ
+            for (let [key, value] of formData.entries()) {
+                if (key !== 'hobbies') {
+                    profileData[key] = value;
+                }
+            }
+            
+            // 趣味データ（複数選択）
+            const hobbies = [];
+            document.querySelectorAll('input[name="hobbies"]:checked').forEach(checkbox => {
+                hobbies.push(checkbox.value);
+            });
+            profileData.hobbies = hobbies;
+            
+            // 登録日時を追加
+            profileData.registeredAt = new Date().toISOString();
+            profileData.hasCompletedProfile = true;
+            
+            // ローカルストレージに保存
+            localStorage.setItem('playerProfile', JSON.stringify(profileData));
+            
+            console.log('プロフィール登録完了:', profileData);
+            
+            // ゲーム画面へ遷移
+            startGame();
+        });
+        
+        // ゲーム開始
+        function startGame() {
+            document.body.style.transition = 'opacity 0.8s ease';
+            document.body.style.opacity = '0';
+            
+            setTimeout(() => {
+                window.location.href = 'enhanced-gps-game.html';
+            }, 800);
+        }
+        
+        // スキップ機能
+        function skipProfile() {
+            // 最小限のプロフィールデータを作成
+            const minimalProfile = {
+                userId: 'guest_' + Date.now(),
+                nickname: 'ゲストユーザー',
+                hasCompletedProfile: false,
+                registeredAt: new Date().toISOString()
+            };
+            
+            localStorage.setItem('playerProfile', JSON.stringify(minimalProfile));
+            startGame();
+        }
+        
+        // 初期化
+        window.addEventListener('load', function() {
+            updateProgress();
+            
+            // 既存プロフィールがある場合は値を復元
+            const existingProfile = localStorage.getItem('playerProfile');
+            if (existingProfile) {
+                const profile = JSON.parse(existingProfile);
+                if (profile.hasCompletedProfile) {
+                    // 既に設定済みの場合はゲームへスキップするか確認
+                    if (confirm('プロフィールは既に設定済みです。ゲーム画面に進みますか？')) {
+                        startGame();
+                        return;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
