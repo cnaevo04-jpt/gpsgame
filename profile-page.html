@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>国道冒険記 - プロフィール</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #4a90e2;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .edit-button {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .edit-button:hover {
+            background: #357abd;
+            transform: translateY(-50%) scale(1.05);
+        }
+        
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .profile-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .profile-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .avatar {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .profile-name {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .profile-id {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+        
+        .join-date {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+        }
+        
+        .profile-body {
+            padding: 25px;
+        }
+        
+        .info-section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #4a90e2;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            background: rgba(74, 144, 226, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid #4a90e2;
+        }
+        
+        .info-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            font-size: 1em;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .info-value.empty {
+            color: #999;
+            font-style: italic;
+        }
+        
+        .hobbies-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .hobby-tag {
+            background: #4a90e2;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .message-box {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 15px;
+            font-style: italic;
+            line-height: 1.5;
+            position: relative;
+        }
+        
+        .message-box::before {
+            content: '"';
+            font-size: 2em;
+            color: #4a90e2;
+            position: absolute;
+            top: -5px;
+            left: 10px;
+        }
+        
+        .message-box::after {
+            content: '"';
+            font-size: 2em;
+            color: #4a90e2;
+            position: absolute;
+            bottom: -20px;
+            right: 10px;
+        }
+        
+        .stats-section {
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #4a90e2;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .achievements-section {
+            margin-top: 20px;
+        }
+        
+        .achievement-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .achievement-item {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid #e1e8ed;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .achievement-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .achievement-icon {
+            font-size: 1.5em;
+        }
+        
+        .achievement-info {
+            flex-grow: 1;
+        }
+        
+        .achievement-title {
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-bottom: 2px;
+        }
+        
+        .achievement-desc {
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 0;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-item {
+            text-align: center;
+            flex: 1;
+            text-decoration: none;
+            color: #888;
+            transition: all 0.2s;
+            padding: 5px;
+            border-radius: 10px;
+        }
+        
+        .nav-item.active {
+            color: #4a90e2;
+            background: rgba(74, 144, 226, 0.1);
+        }
+        
+        .nav-item:hover {
+            color: #4a90e2;
+            background: rgba(74, 144, 226, 0.05);
+        }
+        
+        .nav-icon {
+            height: 24px;
+            width: 24px;
+            display: block;
+            margin: 0 auto 5px;
+            font-size: 20px;
+        }
+        
+        .nav-item span {
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .no-profile {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .setup-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .setup-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 15px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .profile-header {
+                padding: 25px 20px;
+            }
+            
+            .edit-button {
+                position: static;
+                transform: none;
+                margin-top: 15px;
+            }
+            
+            .join-date {
+                position: static;
+                display: inline-block;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👤 プロフィール</h1>
+        <button class="edit-button" onclick="editProfile()" id="editButton" style="display: none;">編集</button>
+    </div>
+    
+    <div class="content" id="profileContent">
+        <!-- プロフィールコンテンツはJavaScriptで動的生成 -->
+    </div>
+    
+    <nav class="navbar">
+        <a href="enhanced-gps-game.html" class="nav-item">
+            <span class="nav-icon">🗺️</span>
+            <span>マップ</span>
+        </a>
+        <a href="character.html" class="nav-item">
+            <span class="nav-icon">👥</span>
+            <span>キャラ図鑑</span>
+        </a>
+        <a href="travel_history.html" class="nav-item">
+            <span class="nav-icon">📊</span>
+            <span>走行履歴</span>
+        </a>
+        <a href="#" class="nav-item active">
+            <span class="nav-icon">❤️</span>
+            <span>プロフィール</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">⚙️</span>
+            <span>設定</span>
+        </a>
+    </nav>
+
+    <script>
+        let playerProfile = null;
+        let gameStats = null;
+        
+        // デバッグ用ログ関数
+        function debugLog(message, data = null) {
+            console.log('[PROFILE DEBUG]', message, data);
+        }
+        
+        // 安全な日付取得関数
+        function safeGetDate(dateString) {
+            try {
+                if (!dateString) return '不明';
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return '不明';
+                return date.toLocaleDateString('ja-JP');
+            } catch (error) {
+                debugLog('日付変換エラー:', error);
+                return '不明';
+            }
+        }
+        
+        // 登録からの日数を安全に計算
+        function getDaysFromRegistration() {
+            try {
+                if (!playerProfile || !playerProfile.registeredAt) return 1;
+                const registeredDate = new Date(playerProfile.registeredAt);
+                if (isNaN(registeredDate.getTime())) return 1;
+                const today = new Date();
+                const diffTime = Math.abs(today - registeredDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays || 1;
+            } catch (error) {
+                debugLog('日数計算エラー:', error);
+                return 1;
+            }
+        }
+        
+        // プロフィール充実度を安全に計算
+        function getProfileCompletionPercentage() {
+            try {
+                if (!playerProfile) return 0;
+                const fields = ['email', 'carBrand', 'favoriteRoad', 'ageGroup', 'message'];
+                const hobbiesSet = playerProfile.hobbies && Array.isArray(playerProfile.hobbies) && playerProfile.hobbies.length > 0;
+                
+                let completed = 0;
+                fields.forEach(field => {
+                    if (playerProfile[field] && playerProfile[field].toString().trim() !== '') {
+                        completed++;
+                    }
+                });
+                if (hobbiesSet) completed++;
+                
+                return Math.round((completed / (fields.length + 1)) * 100);
+            } catch (error) {
+                debugLog('充実度計算エラー:', error);
+                return 0;
+            }
+        }
+        
+        // アバター絵文字を取得
+        function getAvatarEmoji() {
+            try {
+                if (!playerProfile) return '👤';
+                if (playerProfile.hobbies && playerProfile.hobbies.includes('driving')) return '🚗';
+                if (playerProfile.hobbies && playerProfile.hobbies.includes('travel')) return '🗺️';
+                if (playerProfile.carBrand) return '🚙';
+                if (playerProfile.favoriteRoad) return '🛣️';
+                return '👤';
+            } catch (error) {
+                return '👤';
+            }
+        }
+        
+        // 趣味セクションのHTML生成
+        function getHobbiesHtml() {
+            try {
+                if (!playerProfile || !playerProfile.hobbies || !Array.isArray(playerProfile.hobbies) || playerProfile.hobbies.length === 0) {
+                    return '';
+                }
+                
+                const hobbyNames = {
+                    'driving': 'ドライブ',
+                    'travel': '旅行',
+                    'photography': '写真',
+                    'history': '歴史',
+                    'food': 'グルメ',
+                    'nature': '自然',
+                    'gaming': 'ゲーム',
+                    'collecting': '収集'
+                };
+                
+                const hobbiesHtml = playerProfile.hobbies.map(hobby => 
+                    `<div class="hobby-tag">${hobbyNames[hobby] || hobby}</div>`
+                ).join('');
+                
+                return `
+                    <div class="info-section">
+                        <div class="section-title">🎯 趣味・関心</div>
+                        <div class="hobbies-list">${hobbiesHtml}</div>
+                    </div>
+                `;
+            } catch (error) {
+                debugLog('趣味セクション生成エラー:', error);
+                return '';
+            }
+        }
+        
+        // 車ブランド名を取得
+        function getCarBrandName(brand) {
+            if (!brand) return null;
+            const brandNames = {
+                'toyota': 'トヨタ',
+                'honda': 'ホンダ',
+                'nissan': '日産',
+                'mazda': 'マツダ',
+                'subaru': 'スバル',
+                'suzuki': 'スズキ',
+                'daihatsu': 'ダイハツ',
+                'mitsubishi': '三菱',
+                'lexus': 'レクサス',
+                'infiniti': 'インフィニティ',
+                'bmw': 'BMW',
+                'mercedes': 'メルセデス・ベンツ',
+                'audi': 'アウディ',
+                'volkswagen': 'フォルクスワーゲン',
+                'other': 'その他'
+            };
+            return brandNames[brand] || brand;
+        }
+        
+        // 年齢層名を取得
+        function getAgeGroupName(age) {
+            if (!age) return null;
+            const ageNames = {
+                '10s': '10代',
+                '20s': '20代',
+                '30s': '30代',
+                '40s': '40代',
+                '50s': '50代',
+                '60s+': '60代以上'
+            };
+            return ageNames[age] || age;
+        }
+        
+        // 実績リストを生成
+        function getAchievements() {
+            try {
+                const achievements = [];
+                const totalDistance = (gameStats && gameStats.totalDistance) || 0;
+                const points = (gameStats && gameStats.points) || 0;
+                const completedRoads = (gameStats && gameStats.completedRoads) || [];
+                
+                // 基本実績
+                achievements.push({
+                    icon: '🎯',
+                    title: 'プロフィール登録',
+                    desc: '冒険者として登録完了',
+                    unlocked: true
+                });
+                
+                // 走行距離実績
+                if (totalDistance > 1000) {
+                    achievements.push({
+                        icon: '🛣️',
+                        title: '道路の探検者',
+                        desc: '1km以上走行達成',
+                        unlocked: true
+                    });
+                }
+                
+                // 国道制覇実績
+                if (completedRoads.length > 0) {
+                    achievements.push({
+                        icon: '🏆',
+                        title: '国道マスター',
+                        desc: `${completedRoads.length}本の国道を制覇`,
+                        unlocked: true
+                    });
+                }
+                
+                // ポイント実績
+                if (points >= 20000) {
+                    achievements.push({
+                        icon: '💎',
+                        title: 'ポイントコレクター',
+                        desc: '20,000ポイント達成',
+                        unlocked: true
+                    });
+                }
+                
+                // プロフィール充実度実績
+                if (getProfileCompletionPercentage() >= 80) {
+                    achievements.push({
+                        icon: '⭐',
+                        title: '情報通',
+                        desc: 'プロフィール80%完成',
+                        unlocked: true
+                    });
+                }
+                
+                // ロック済み実績
+                achievements.push(
+                    {
+                        icon: '🔒',
+                        title: '全国制覇者',
+                        desc: '47都道府県の国道制覇',
+                        unlocked: false
+                    },
+                    {
+                        icon: '🔒',
+                        title: '10万kmドライバー',
+                        desc: '総走行距離10万km達成',
+                        unlocked: false
+                    }
+                );
+                
+                return achievements.map(achievement => `
+                    <div class="achievement-item" style="${!achievement.unlocked ? 'opacity: 0.5;' : ''}">
+                        <div class="achievement-icon">${achievement.icon}</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">${achievement.title}</div>
+                            <div class="achievement-desc">${achievement.desc}</div>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                debugLog('実績生成エラー:', error);
+                return `
+                    <div class="achievement-item">
+                        <div class="achievement-icon">🎯</div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">プロフィール登録</div>
+                            <div class="achievement-desc">冒険者として登録完了</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // プロフィール表示
+        function displayProfile() {
+            debugLog('プロフィール表示開始');
+            document.getElementById('editButton').style.display = 'block';
+            
+            try {
+                const joinDate = safeGetDate(playerProfile.registeredAt);
+                const avatar = getAvatarEmoji();
+                const hobbiesHtml = getHobbiesHtml();
+                const achievements = getAchievements();
+                
+                const profileHtml = `
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="join-date">参加日: ${joinDate}</div>
+                            <div class="avatar">${avatar}</div>
+                            <div class="profile-name">${playerProfile.nickname || 'ゲストユーザー'}</div>
+                            <div class="profile-id">ID: ${playerProfile.userId || 'guest'}</div>
+                        </div>
+                        
+                        <div class="profile-body">
+                            <div class="info-section">
+                                <div class="section-title">📋 基本情報</div>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">メールアドレス</div>
+                                        <div class="info-value ${!playerProfile.email ? 'empty' : ''}">${playerProfile.email || '未設定'}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">愛車メーカー</div>
+                                        <div class="info-value ${!playerProfile.carBrand ? 'empty' : ''}">${getCarBrandName(playerProfile.carBrand) || '未設定'}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">お気に入り国道</div>
+                                        <div class="info-value ${!playerProfile.favoriteRoad ? 'empty' : ''}">${playerProfile.favoriteRoad || '未設定'}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">年齢層</div>
+                                        <div class="info-value ${!playerProfile.ageGroup ? 'empty' : ''}">${getAgeGroupName(playerProfile.ageGroup) || '未設定'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${hobbiesHtml}
+                            
+                            ${playerProfile.message ? `
+                            <div class="info-section">
+                                <div class="section-title">💬 一言メッセージ</div>
+                                <div class="message-box">${playerProfile.message}</div>
+                            </div>
+                            ` : ''}
+                            
+                            <div class="stats-section">
+                                <div class="section-title">📊 冒険統計</div>
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <span class="stat-value">${((gameStats && gameStats.points) || 0).toLocaleString()}</span>
+                                        <div class="stat-label">獲得ポイント</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">${(((gameStats && gameStats.totalDistance) || 0) / 1000).toFixed(1)}km</span>
+                                        <div class="stat-label">総走行距離</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">${((gameStats && gameStats.completedRoads) || []).length}</span>
+                                        <div class="stat-label">制覇国道数</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">${Math.floor(((gameStats && gameStats.totalTimeMinutes) || 0) / 60)}h</span>
+                                        <div class="stat-label">総プレイ時間</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">${getDaysFromRegistration()}</span>
+                                        <div class="stat-label">冒険日数</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">${getProfileCompletionPercentage()}%</span>
+                                        <div class="stat-label">プロフィール充実度</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="achievements-section">
+                                <div class="section-title">🏆 実績・達成項目</div>
+                                <div class="achievement-list">${achievements}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('profileContent').innerHTML = profileHtml;
+                debugLog('プロフィール表示完了');
+                
+            } catch (error) {
+                debugLog('プロフィール表示エラー:', error);
+                displayErrorProfile();
+            }
+        }
+        
+        // プロフィール未設定時の表示
+        function displayNoProfile() {
+            debugLog('プロフィール未設定画面表示');
+            const noProfileHtml = `
+                <div class="no-profile">
+                    <div style="font-size: 4em; margin-bottom: 20px;">😔</div>
+                    <h2>プロフィールが設定されていません</h2>
+                    <p>あなたの冒険者情報を設定して、<br>より充実した国道の旅を楽しみましょう！</p>
+                    <button class="setup-button" onclick="setupProfile()">
+                        📝 プロフィールを設定する
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('profileContent').innerHTML = noProfileHtml;
+        }
+        
+        // エラー時の表示
+        function displayErrorProfile() {
+            const errorHtml = `
+                <div class="no-profile">
+                    <div style="font-size: 4em; margin-bottom: 20px;">⚠️</div>
+                    <h2>プロフィール読み込みエラー</h2>
+                    <p>データの読み込み中に問題が発生しました。<br>ページを再読み込みするか、新しいプロフィールを作成してください。</p>
+                    <button class="setup-button" onclick="setupProfile()">
+                        📝 新しいプロフィールを作成
+                    </button>
+                    <button class="setup-button" onclick="location.reload()" style="background: #95a5a6;">
+                        🔄 ページ再読み込み
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('profileContent').innerHTML = errorHtml;
+        }
+        
+        // プロフィールデータを読み込み
+        function loadProfile() {
+            debugLog('プロフィール読み込み開始');
+            
+            try {
+                const profileData = localStorage.getItem('playerProfile');
+                const statsData = localStorage.getItem('gameData');
+                const unlockedCharacters = JSON.parse(localStorage.getItem('unlockedCharacters') || '[]');
+                
+                debugLog('ローカルストレージデータ:', {
+                    profileData: profileData ? 'あり' : 'なし',
+                    statsData: statsData ? 'あり' : 'なし',
+                    unlockedCharacters: unlockedCharacters
+                });
+                
+                if (profileData && profileData !== 'null') {
+                    playerProfile = JSON.parse(profileData);
+                    debugLog('プロフィールデータ解析成功:', playerProfile);
+                    
+                    // ゲーム統計データも読み込み
+                    if (statsData && statsData !== 'null') {
+                        gameStats = JSON.parse(statsData);
+                        debugLog('ゲーム統計データ解析成功:', gameStats);
+                    } else {
+                        gameStats = {
+                            totalDistance: 0,
+                            points: 12500,
+                            completedRoads: unlockedCharacters,
+                            totalTimeMinutes: 0
+                        };
+                        debugLog('デフォルトゲーム統計データ作成:', gameStats);
+                    }
+                    
+                    displayProfile();
+                } else {
+                    debugLog('プロフィールデータなし、新規作成画面表示');
+                    displayNoProfile();
+                }
+            } catch (error) {
+                debugLog('エラー発生:', error);
+                console.error('プロフィール読み込みエラー:', error);
+                displayErrorProfile();
+            }
+        }
+        
+        // プロフィール編集
+        function editProfile() {
+            window.location.href = 'profile-setup.html';
+        }
+        
+        // プロフィール設定
+        function setupProfile() {
+            window.location.href = 'profile-setup.html';
+        }
+        
+        // 初期化
+        window.addEventListener('load', function() {
+            debugLog('プロフィールページ読み込み完了');
+            loadProfile();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>国道冒険記 - キャラ図鑑</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #4a90e2;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .collection-stats {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(74, 144, 226, 0.1);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: #4a90e2;
+            font-weight: 600;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .filter-tab {
+            background: rgba(255, 255, 255, 0.7);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+        
+        .filter-tab.active {
+            background: #4a90e2;
+            color: white;
+            box-shadow: 0 2px 10px rgba(74, 144, 226, 0.3);
+        }
+        
+        .character-grid {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+        }
+        
+        .character-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+        
+        .character-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .character-card.locked {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .character-card.locked:hover {
+            transform: translateY(-3px);
+        }
+        
+        .image-container {
+            width: 100%;
+            height: 140px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .image-container.unlocked {
+            background: linear-gradient(45deg, #4a90e2, #667eea);
+        }
+        
+        .image-container.locked {
+            background: linear-gradient(45deg, #bbb, #ddd);
+            position: relative;
+        }
+        
+        .image-container.locked::before {
+            content: '🔒';
+            font-size: 3em;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+        
+        .character-emoji {
+            font-size: 4em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .character-card.locked .character-emoji {
+            filter: grayscale(100%) brightness(0.5);
+            opacity: 0.3;
+        }
+        
+        .details {
+            padding: 15px 10px;
+        }
+        
+        .character-name {
+            margin: 0 0 5px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .character-card.locked .character-name {
+            color: #999;
+        }
+        
+        .road-info {
+            margin: 0 0 8px;
+            font-size: 0.9em;
+            color: #4a90e2;
+            font-weight: 500;
+        }
+        
+        .character-card.locked .road-info {
+            color: #bbb;
+        }
+        
+        .completion-status {
+            font-size: 0.8em;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            font-weight: 500;
+        }
+        
+        .status-completed {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+        
+        .status-locked {
+            background: rgba(158, 158, 158, 0.2);
+            color: #9e9e9e;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 0;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-item {
+            text-align: center;
+            flex: 1;
+            text-decoration: none;
+            color: #888;
+            transition: all 0.2s;
+            padding: 5px;
+            border-radius: 10px;
+        }
+        
+        .nav-item.active {
+            color: #4a90e2;
+            background: rgba(74, 144, 226, 0.1);
+        }
+        
+        .nav-item:hover {
+            color: #4a90e2;
+            background: rgba(74, 144, 226, 0.05);
+        }
+        
+        .nav-icon {
+            height: 24px;
+            width: 24px;
+            display: block;
+            margin: 0 auto 5px;
+            font-size: 20px;
+        }
+        
+        .nav-item span {
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        /* キャラクター詳細モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-character-emoji {
+            font-size: 5em;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        @media (max-width: 480px) {
+            .character-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 12px;
+                padding: 15px;
+            }
+            
+            .collection-stats {
+                position: static;
+                transform: none;
+                margin-top: 10px;
+                display: inline-block;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎌 キャラ図鑑</h1>
+        <div class="collection-stats" id="collectionStats">
+            🏆 12 / 47 (25%)
+        </div>
+        
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterCharacters('all')">全て</button>
+            <button class="filter-tab" onclick="filterCharacters('unlocked')">入手済み</button>
+            <button class="filter-tab" onclick="filterCharacters('locked')">未入手</button>
+        </div>
+    </div>
+    
+    <div class="character-grid" id="characterGrid">
+        <!-- キャラクターカードはJSで動的生成 -->
+    </div>
+    
+    <!-- キャラクター詳細モーダル -->
+    <div class="modal" id="characterModal">
+        <div class="modal-content">
+            <button class="close-button" onclick="closeModal()">&times;</button>
+            <div class="modal-character-emoji" id="modalEmoji">🚗</div>
+            <h2 id="modalName">キャラクター名</h2>
+            <p id="modalRoad">国道1号</p>
+            <p id="modalDescription">キャラクターの説明がここに表示されます。</p>
+            <div id="modalStats"></div>
+        </div>
+    </div>
+    
+    <nav class="navbar">
+        <a href="gps9" class="nav-item">
+            <span class="nav-icon">🗺️</span>
+            <span>マップ</span>
+        </a>
+        <a href="#" class="nav-item active">
+            <span class="nav-icon">👥</span>
+            <span>キャラ図鑑</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">❤️</span>
+            <span>プロフィール</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">⚙️</span>
+            <span>設定</span>
+        </a>
+    </nav>
+
+    <script>
+        // 国道キャラクターデータ
+        const characters = [
+            // 主要国道 (1-10号)
+            { id: 1, name: "いちろう", emoji: "🚗", road: 1, unlocked: true, description: "東海道の守護者。東京から大阪を結ぶ歴史ある国道のキャラクター。" },
+            { id: 2, name: "にじか", emoji: "🌈", road: 2, unlocked: true, description: "山陽道の案内役。大阪から九州へと続く長い旅路の仲間。" },
+            { id: 3, name: "さぶろう", emoji: "⛩️", road: 3, unlocked: false, description: "九州縦断の旅人。福岡から鹿児島まで九州を縦に貫く道の精霊。" },
+            { id: 4, name: "よつば", emoji: "🍀", road: 4, unlocked: false, description: "東北への道標。東京から青森への長い道のりを見守る存在。" },
+            { id: 5, name: "ごろう", emoji: "🗾", road: 5, unlocked: false, description: "日本海の風を運ぶ。新潟から山形、秋田へと続く海沿いの道の番人。" },
+            { id: 6, name: "ろくすけ", emoji: "🏔️", road: 6, unlocked: false, description: "山間の案内者。群馬から新潟への峠道を知り尽くしたガイド。" },
+            { id: 7, name: "ななこ", emoji: "🌸", road: 7, unlocked: false, description: "桜前線と共に。福島から新潟へと続く花の道の妖精。" },
+            { id: 8, name: "はちべえ", emoji: "🎋", road: 8, unlocked: false, description: "関西の結び手。京都から和歌山、奈良を結ぶ古都の守り神。" },
+            { id: 9, name: "きゅうちゃん", emoji: "🎌", road: 9, unlocked: false, description: "関東の大動脈。東京都心から茨城へと向かう現代の道しるべ。" },
+            { id: 10, name: "とおる", emoji: "🌊", road: 10, unlocked: false, description: "太平洋の風。東京から静岡へと続く海岸線の案内者。" },
+            
+            // 中距離国道 (11-30号)
+            { id: 11, name: "じゅういち", emoji: "🦌", road: 11, unlocked: false, description: "奈良の使者。奈良から和歌山への古道の鹿の精霊。" },
+            { id: 12, name: "じゅうに", emoji: "🎭", road: 12, unlocked: false, description: "四国の芸能神。徳島から高知への険しい道の守護者。" },
+            { id: 15, name: "じゅうご", emoji: "🍊", road: 15, unlocked: false, description: "みかんの国から。静岡から長野への山岳ルートの案内役。" },
+            { id: 16, name: "じゅうろく", emoji: "🏯", road: 16, unlocked: false, description: "城下町巡り。名古屋から岐阜への歴史街道の武者。" },
+            { id: 17, name: "じゅうなな", emoji: "🎿", road: 17, unlocked: false, description: "雪国への道。高崎から新潟への峠越えの雪だるま。" },
+            { id: 18, name: "じゅうはち", emoji: "🌺", road: 18, unlocked: false, description: "南国の風。高知から宿毛への太平洋岸の花の精。" },
+            { id: 19, name: "じゅうきゅう", emoji: "🍑", road: 19, unlocked: false, description: "桃の国から。甲府から長野への果樹園の妖精。" },
+            { id: 20, name: "はたち", emoji: "🏔️", road: 20, unlocked: false, description: "飛騨山脈の番人。塩尻から松本への山岳地帯の岩石精霊。" },
+            { id: 23, name: "にじゅうさん", emoji: "🦋", road: 23, unlocked: false, description: "蝶の舞い踊る道。豊橋から飯田への南アルプス麓の案内者。" },
+            { id: 24, name: "にじゅうよん", emoji: "🌿", road: 24, unlocked: false, description: "森の案内人。和歌山から奈良への紀伊山地の緑の精霊。" },
+            { id: 25, name: "にじゅうご", emoji: "🍵", road: 25, unlocked: true, description: "お茶の香り道。名古屋から奈良への古都結ぶ茶の妖精。" },
+            
+            // 地方国道
+            { id: 176, name: "ひゃくななじゅうろく", emoji: "🎋", road: 176, unlocked: true, description: "竹林の案内者。大阪から京都への美しい竹の道の精霊。" },
+            { id: 246, name: "にひゃくよんじゅうろく", emoji: "🌈", road: 246, unlocked: false, description: "虹の架け橋。東京から沼津への東海道の現代版案内役。" },
+            
+            // 追加の地方国道（例）
+            { id: 45, name: "よんじゅうご", emoji: "🍀", road: 45, unlocked: false, description: "北海道の大地。札幌から根室への道東の案内者。" },
+            { id: 58, name: "ごじゅうはち", emoji: "🌺", road: 58, unlocked: false, description: "沖縄の風。那覇から名護への南国の道の精霊。" },
+        ];
+        
+        let currentFilter = 'all';
+        let unlockedCharacters = JSON.parse(localStorage.getItem('unlockedCharacters')) || [1, 2, 25, 176];
+        
+        // キャラクターのロック状態を更新
+        function updateCharacterUnlockStatus() {
+            characters.forEach(char => {
+                char.unlocked = unlockedCharacters.includes(char.road);
+            });
+        }
+        
+        // コレクション統計を更新
+        function updateCollectionStats() {
+            const total = characters.length;
+            const unlocked = characters.filter(char => char.unlocked).length;
+            const percentage = Math.round((unlocked / total) * 100);
+            
+            document.getElementById('collectionStats').textContent = `🏆 ${unlocked} / ${total} (${percentage}%)`;
+        }
+        
+        // キャラクターカードを生成
+        function createCharacterCard(character) {
+            const isUnlocked = character.unlocked;
+            
+            return `
+                <div class="character-card ${isUnlocked ? 'unlocked' : 'locked'}" 
+                     onclick="showCharacterDetails(${character.id})">
+                    <div class="image-container ${isUnlocked ? 'unlocked' : 'locked'}">
+                        <div class="character-emoji">${isUnlocked ? character.emoji : '❓'}</div>
+                    </div>
+                    <div class="details">
+                        <h3 class="character-name">${isUnlocked ? character.name : '???'}</h3>
+                        <p class="road-info">${isUnlocked ? `国道${character.road}号` : '国道???号'}</p>
+                        <div class="completion-status ${isUnlocked ? 'status-completed' : 'status-locked'}">
+                            ${isUnlocked ? '✓ 入手済み' : '🔒 未入手'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // キャラクター一覧を表示
+        function displayCharacters() {
+            updateCharacterUnlockStatus();
+            
+            let filteredCharacters;
+            switch(currentFilter) {
+                case 'unlocked':
+                    filteredCharacters = characters.filter(char => char.unlocked);
+                    break;
+                case 'locked':
+                    filteredCharacters = characters.filter(char => !char.unlocked);
+                    break;
+                default:
+                    filteredCharacters = characters;
+            }
+            
+            // 国道番号順にソート
+            filteredCharacters.sort((a, b) => a.road - b.road);
+            
+            const grid = document.getElementById('characterGrid');
+            grid.innerHTML = filteredCharacters.map(createCharacterCard).join('');
+            
+            updateCollectionStats();
+        }
+        
+        // フィルター切り替え
+        function filterCharacters(filter) {
+            currentFilter = filter;
+            
+            // タブの見た目更新
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            displayCharacters();
+        }
+        
+        // キャラクター詳細表示
+        function showCharacterDetails(characterId) {
+            const character = characters.find(char => char.id === characterId);
+            if (!character) return;
+            
+            const modal = document.getElementById('characterModal');
+            const isUnlocked = character.unlocked;
+            
+            document.getElementById('modalEmoji').textContent = isUnlocked ? character.emoji : '🔒';
+            document.getElementById('modalName').textContent = isUnlocked ? character.name : '???';
+            document.getElementById('modalRoad').textContent = isUnlocked ? `国道${character.road}号` : '国道???号';
+            document.getElementById('modalDescription').textContent = isUnlocked ? character.description : 'この国道を走破すると仲間になります。';
+            
+            const statsHtml = isUnlocked ? 
+                `<div style="background: rgba(76,175,80,0.1); padding: 10px; border-radius: 10px; margin-top: 15px;">
+                    <strong>✓ 入手済みキャラクター</strong><br>
+                    <small>国道${character.road}号を走破して仲間になりました！</small>
+                </div>` :
+                `<div style="background: rgba(158,158,158,0.1); padding: 10px; border-radius: 10px; margin-top: 15px;">
+                    <strong>🔒 未入手キャラクター</strong><br>
+                    <small>国道${character.road}号を完全走破すると仲間になります。</small>
+                </div>`;
+            
+            document.getElementById('modalStats').innerHTML = statsHtml;
+            
+            modal.style.display = 'block';
+        }
+        
+        // モーダルを閉じる
+        function closeModal() {
+            document.getElementById('characterModal').style.display = 'none';
+        }
+        
+        // マップに戻る
+        function switchToMap() {
+            window.location.href = 'gps9';
+        }
+        
+        // 新しいキャラクターをアンロック（テスト用）
+        function unlockCharacter(roadNumber) {
+            if (!unlockedCharacters.includes(roadNumber)) {
+                unlockedCharacters.push(roadNumber);
+                localStorage.setItem('unlockedCharacters', JSON.stringify(unlockedCharacters));
+                displayCharacters();
+                
+                // アンロック通知
+                const character = characters.find(char => char.road === roadNumber);
+                if (character) {
+                    alert(`🎉 新しい仲間が加わりました！\n${character.name}（国道${roadNumber}号）`);
+                }
+            }
+        }
+        
+        // ナビゲーション切り替え
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // モーダル外クリックで閉じる
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('characterModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // 初期表示
+        window.addEventListener('load', function() {
+            displayCharacters();
+            
+            // テスト用：コンソールでキャラクターをアンロックできる機能
+            window.unlockCharacter = unlockCharacter;
+            console.log('テスト用機能: unlockCharacter(国道番号) でキャラクターをアンロックできます');
+            console.log('例: unlockCharacter(3) で国道3号のキャラクターをアンロック');
+        });
+    </script>
+</body>
+</html>
