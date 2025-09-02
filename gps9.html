@@ -17,7 +17,7 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
-        let currentLocation = null;
+        }
         .map-container {
             flex-grow: 1;
             position: relative;
@@ -201,9 +201,13 @@
             <span class="nav-icon">🗺️</span>
             <span>マップ</span>
         </a>
-        <a href="#" class="nav-item">
+        <a href="character" class="nav-item">
             <span class="nav-icon">👥</span>
             <span>キャラ図鑑</span>
+        </a>
+        <a href="travel_history" class="nav-item">
+            <span class="nav-icon">📊</span>
+            <span>走行履歴</span>
         </a>
         <a href="#" class="nav-item">
             <span class="nav-icon">❤️</span>
@@ -223,103 +227,8 @@
         let isWatching = false;
         let debugMode = false;
         let debugLog = [];
-        // シミュレーション機能
-        function startSimulation() {
-            const button = document.getElementById('simulateButton');
-            
-            if (simulationActive) {
-                // シミュレーション停止
-                clearInterval(simulationInterval);
-                simulationActive = false;
-                button.textContent = '🚗';
-                button.title = '移動シミュレーション';
-                updateGpsStatus('success', '⏹️ シミュレーション停止');
-                addDebugLog('移動シミュレーション停止');
-            } else {
-                // シミュレーション開始
-                simulationActive = true;
-                button.textContent = '⏹️';
-                button.title = 'シミュレーション停止';
-                updateGpsStatus('loading', '🚗 移動シミュレーション中...');
-                addDebugLog('移動シミュレーション開始');
-                
-                // 3秒間隔で各テストポイントを巡回
-                simulationInterval = setInterval(simulateMovement, 3000);
-                
-                // 最初のポイントをすぐに実行
-                simulateMovement();
-            }
-        }
-        
-        function simulateMovement() {
-            if (!simulationActive) return;
-            
-            const point = testPoints[currentTestIndex];
-            
-            // 疑似GPS座標を生成（少しランダムに変動させる）
-            const lat = point.lat + (Math.random() - 0.5) * 0.0001; // ±5m程度の誤差
-            const lng = point.lng + (Math.random() - 0.5) * 0.0001;
-            const accuracy = 10 + Math.random() * 20; // 10-30mの精度
-            
-            // 疑似位置情報オブジェクトを作成
-            const simulatedPosition = {
-                coords: {
-                    latitude: lat,
-                    longitude: lng,
-                    accuracy: accuracy,
-                    speed: 5 // 歩行速度 (m/s)
-                },
-                timestamp: Date.now()
-            };
-            
-            // 位置情報成功時の処理を実行
-            onLocationSuccess(simulatedPosition);
-            
-            addDebugLog(`シミュレーション: ${point.name} (${lat.toFixed(6)}, ${lng.toFixed(6)})`);
-            
-            // 次のポイントに移動
-            currentTestIndex = (currentTestIndex + 1) % testPoints.length;
-            
-            // 1周したら少し待機
-            if (currentTestIndex === 0) {
-                addDebugLog('シミュレーション1周完了、継続中...');
-            }
-        }
-        
-        // 特定の国道エリアに直接ジャンプする機能
-        function jumpToRoad(roadNumber) {
-            let targetPoint;
-            
-            switch(roadNumber) {
-                case 1:
-                    targetPoint = { lat: 34.7035, lng: 135.4975, name: "国道1号テスト地点" };
-                    break;
-                case 2:
-                    targetPoint = { lat: 34.6915, lng: 135.4965, name: "国道2号テスト地点" };
-                    break;
-                case 25:
-                    targetPoint = { lat: 34.6515, lng: 135.5165, name: "国道25号テスト地点" };
-                    break;
-                case 176:
-                    targetPoint = { lat: 34.7265, lng: 135.4915, name: "国道176号テスト地点" };
-                    break;
-                default:
-                    return;
-            }
-            
-            const simulatedPosition = {
-                coords: {
-                    latitude: targetPoint.lat,
-                    longitude: targetPoint.lng,
-                    accuracy: 15,
-                    speed: 0
-                },
-                timestamp: Date.now()
-            };
-            
-            onLocationSuccess(simulatedPosition);
-            addDebugLog(`国道${roadNumber}号エリアにジャンプ: ${targetPoint.name}`);
-        }
+        let currentLocation = null;
+        let roadLayer = null;
         
         // ゲームデータ
         let gameData = {
@@ -327,7 +236,7 @@
             totalDistance: 0,
             lastPosition: null,
             currentRoad: null,
-            roadDistance: 0  // 現在の国道での走行距離
+            roadDistance: 0
         };
         
         // シミュレーション用変数
@@ -336,28 +245,70 @@
         
         // 大阪の国道テストポイント
         const testPoints = [
-            // 国道1号エリア（大阪駅周辺）
             { lat: 34.7024, lng: 135.4959, name: "大阪駅" },
             { lat: 34.7030, lng: 135.4970, name: "国道1号 Point1" },
             { lat: 34.7040, lng: 135.4980, name: "国道1号 Point2" },
-            
-            // 国道2号エリア（中之島周辺）
             { lat: 34.6900, lng: 135.4950, name: "中之島公園" },
             { lat: 34.6910, lng: 135.4960, name: "国道2号 Point1" },
             { lat: 34.6920, lng: 135.4970, name: "国道2号 Point2" },
-            
-            // 国道25号エリア（天王寺周辺）
             { lat: 34.6500, lng: 135.5150, name: "天王寺駅" },
             { lat: 34.6510, lng: 135.5160, name: "国道25号 Point1" },
             { lat: 34.6520, lng: 135.5170, name: "国道25号 Point2" },
-            
-            // 国道176号エリア（新大阪周辺）
             { lat: 34.7250, lng: 135.4900, name: "新大阪駅" },
             { lat: 34.7260, lng: 135.4910, name: "国道176号 Point1" },
             { lat: 34.7270, lng: 135.4920, name: "国道176号 Point2" }
         ];
         
         let currentTestIndex = 0;
+        
+        // 国道1号を手動データで描画
+        function drawRoute1WithRealData() {
+            if (!map) return;
+            
+            // 国道1号の実際のルート（主要ポイント）
+            const route1Points = [
+                [35.6762, 139.6503], // 東京駅（起点）
+                [35.6280, 139.7394], // 品川
+                [35.4478, 139.6425], // 横浜
+                [35.3606, 139.6394], // 藤沢
+                [35.0844, 138.9086], // 沼津
+                [34.9756, 138.3829], // 静岡市
+                [34.8886, 137.9378], // 浜松
+                [35.1802, 136.9066], // 名古屋
+                [34.9858, 135.7581], // 京都
+                [34.7024, 135.4959]  // 大阪（終点）
+            ];
+            
+            const isCompleted = JSON.parse(localStorage.getItem('unlockedCharacters') || '[]').includes(1);
+            const color = isCompleted ? '#4CAF50' : '#FF0000';
+            
+            // 既存の線があれば削除
+            if (roadLayer) {
+                map.removeLayer(roadLayer);
+            }
+            
+            roadLayer = L.polyline(route1Points, {
+                color: color,
+                weight: 6,
+                opacity: 0.8,
+                dashArray: isCompleted ? null : '10, 5'
+            }).addTo(map);
+            
+            roadLayer.bindPopup(`
+                <div style="text-align: center; font-weight: bold;">
+                    <strong>国道1号（東海道）</strong><br>
+                    <span style="color: ${color};">
+                        ${isCompleted ? '✅ 走行済み' : '❌ 未走行'}
+                    </span><br>
+                    <small>東京-大阪間 約500km</small>
+                </div>
+            `);
+            
+            // 地図を国道1号全体が見えるように調整
+            map.fitBounds(route1Points, { padding: [20, 20] });
+            
+            addDebugLog('国道1号線を描画しました（手動データ）');
+        }
         
         // デバッグログ
         function addDebugLog(message) {
@@ -377,7 +328,8 @@
                     <button onclick="jumpToRoad(1)" style="margin:2px;padding:4px;font-size:10px;">国道1号</button>
                     <button onclick="jumpToRoad(2)" style="margin:2px;padding:4px;font-size:10px;">国道2号</button><br>
                     <button onclick="jumpToRoad(25)" style="margin:2px;padding:4px;font-size:10px;">国道25号</button>
-                    <button onclick="jumpToRoad(176)" style="margin:2px;padding:4px;font-size:10px;">国道176号</button>
+                    <button onclick="jumpToRoad(176)" style="margin:2px;padding:4px;font-size:10px;">国道176号</button><br>
+                    <button onclick="drawRoute1WithRealData()" style="margin:2px;padding:4px;font-size:10px;background:#4CAF50;color:white;">国道1号線描画</button>
                 `;
             }
         }
@@ -395,17 +347,24 @@
             statusElement.textContent = message;
         }
         
-        // 地図初期化（シンプル版）
+        // 地図初期化
         function initMap(lat = 34.7024, lng = 135.4959) {
             addDebugLog('地図初期化開始');
             
             try {
-                if (map) map.remove();
+                if (map) {
+                    map.remove();
+                    map = null;
+                }
+                
+                const mapElement = document.getElementById('map');
+                mapElement.innerHTML = '';
                 
                 map = L.map('map').setView([lat, lng], 15);
                 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
                 }).addTo(map);
                 
                 addDebugLog('地図初期化完了');
@@ -413,6 +372,15 @@
             } catch (error) {
                 addDebugLog('地図エラー: ' + error.message);
                 updateGpsStatus('error', '❌ 地図エラー');
+                
+                const mapElement = document.getElementById('map');
+                mapElement.innerHTML = `
+                    <div style="width: 100%; height: 100%; background: #74b9ff; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🗺️</div>
+                        <div style="font-weight: bold;">地図読み込み中...</div>
+                        <button onclick="initMap()" style="margin-top: 20px; padding: 10px 20px; background: white; color: #333; border: none; border-radius: 5px; cursor: pointer;">再読み込み</button>
+                    </div>
+                `;
             }
         }
         
@@ -453,7 +421,7 @@
             return R * c;
         }
         
-        // 国道判定（大阪版・シンプル）
+        // 国道判定
         function checkNationalRoad(lat, lng) {
             const roads = [
                 { id: 1, name: "国道1号", minLat: 34.700, maxLat: 34.710, minLng: 135.495, maxLng: 135.505 },
@@ -472,23 +440,19 @@
         
         // ゲーム進行処理
         function processGameData(lat, lng) {
-            // 距離計算
             if (gameData.lastPosition) {
                 const distance = calculateDistance(gameData.lastPosition.lat, gameData.lastPosition.lng, lat, lng);
-                if (distance > 1 && distance < 200) { // 1m以上で計算（シミュレーション対応）
+                if (distance > 1 && distance < 200) {
                     gameData.totalDistance += distance;
                     gameData.points += Math.floor(distance / 10);
                     
-                    // 国道内での距離も加算
                     if (gameData.currentRoad) {
                         gameData.roadDistance += distance;
                     }
                     
-                    // UI更新
                     document.getElementById('distanceDisplay').textContent = `${(gameData.totalDistance/1000).toFixed(1)}km`;
                     document.getElementById('pointsDisplay').textContent = gameData.points.toLocaleString();
                     
-                    // 国道内距離も更新
                     if (gameData.currentRoad) {
                         document.getElementById('roadDistance').textContent = `走行距離: ${gameData.roadDistance.toFixed(0)}m`;
                     }
@@ -497,24 +461,20 @@
                 }
             }
             
-            // 国道判定
             const road = checkNationalRoad(lat, lng);
             if (road) {
                 if (!gameData.currentRoad || gameData.currentRoad.id !== road.id) {
-                    // 新しい国道に入った
                     gameData.currentRoad = road;
-                    gameData.roadDistance = 0; // 国道内距離をリセット
+                    gameData.roadDistance = 0;
                     document.getElementById('roadName').textContent = `🛣️ ${road.name}`;
                     document.getElementById('roadDistance').textContent = `走行距離: 0m`;
                     document.getElementById('roadInfo').style.display = 'block';
                     addDebugLog(`国道発見: ${road.name}`);
                 } else {
-                    // 同じ国道内で移動中
                     document.getElementById('roadDistance').textContent = `走行距離: ${gameData.roadDistance.toFixed(0)}m`;
                 }
             } else {
                 if (gameData.currentRoad) {
-                    // 国道から離れた
                     addDebugLog(`${gameData.currentRoad.name}を離脱 (走行距離: ${gameData.roadDistance.toFixed(0)}m)`);
                     gameData.currentRoad = null;
                     gameData.roadDistance = 0;
@@ -534,7 +494,6 @@
             updateGpsStatus('success', `📍 GPS精度: ${accuracy.toFixed(0)}m`);
             updateCurrentLocationMarker(latitude, longitude, accuracy);
             
-            // ゲーム処理
             processGameData(latitude, longitude);
             
             if (!isWatching) {
@@ -596,11 +555,82 @@
             }
         }
         
+        // シミュレーション機能
+        function startSimulation() {
+            const button = document.getElementById('simulateButton');
+            
+            if (simulationActive) {
+                clearInterval(simulationInterval);
+                simulationActive = false;
+                button.textContent = '🚗';
+                button.title = '移動シミュレーション';
+                updateGpsStatus('success', '⏹️ シミュレーション停止');
+                addDebugLog('移動シミュレーション停止');
+            } else {
+                simulationActive = true;
+                button.textContent = '⏹️';
+                button.title = 'シミュレーション停止';
+                updateGpsStatus('loading', '🚗 移動シミュレーション中...');
+                addDebugLog('移動シミュレーション開始');
+                
+                simulationInterval = setInterval(simulateMovement, 3000);
+                simulateMovement();
+            }
+        }
+        
+        function simulateMovement() {
+            if (!simulationActive) return;
+            
+            const point = testPoints[currentTestIndex];
+            const lat = point.lat + (Math.random() - 0.5) * 0.0001;
+            const lng = point.lng + (Math.random() - 0.5) * 0.0001;
+            const accuracy = 10 + Math.random() * 20;
+            
+            const simulatedPosition = {
+                coords: { latitude: lat, longitude: lng, accuracy: accuracy, speed: 5 },
+                timestamp: Date.now()
+            };
+            
+            onLocationSuccess(simulatedPosition);
+            addDebugLog(`シミュレーション: ${point.name} (${lat.toFixed(6)}, ${lng.toFixed(6)})`);
+            
+            currentTestIndex = (currentTestIndex + 1) % testPoints.length;
+            
+            if (currentTestIndex === 0) {
+                addDebugLog('シミュレーション1周完了、継続中...');
+            }
+        }
+        
+        function jumpToRoad(roadNumber) {
+            let targetPoint;
+            switch(roadNumber) {
+                case 1: targetPoint = { lat: 34.7035, lng: 135.4975, name: "国道1号テスト地点" }; break;
+                case 2: targetPoint = { lat: 34.6915, lng: 135.4965, name: "国道2号テスト地点" }; break;
+                case 25: targetPoint = { lat: 34.6515, lng: 135.5165, name: "国道25号テスト地点" }; break;
+                case 176: targetPoint = { lat: 34.7265, lng: 135.4915, name: "国道176号テスト地点" }; break;
+                default: return;
+            }
+            
+            const simulatedPosition = {
+                coords: { latitude: targetPoint.lat, longitude: targetPoint.lng, accuracy: 15, speed: 0 },
+                timestamp: Date.now()
+            };
+            
+            onLocationSuccess(simulatedPosition);
+            addDebugLog(`国道${roadNumber}号エリアにジャンプ: ${targetPoint.name}`);
+        }
+        
         // 初期化
         window.addEventListener('load', function() {
-            addDebugLog('アプリ開始（大阪版）');
-            initMap();
-            setTimeout(getCurrentLocation, 1000);
+            addDebugLog('アプリ開始（修復版）');
+            
+            setTimeout(() => {
+                initMap();
+            }, 500);
+            
+            setTimeout(() => {
+                getCurrentLocation();
+            }, 2000);
         });
     </script>
 </body>
